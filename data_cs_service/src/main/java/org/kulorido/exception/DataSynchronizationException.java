@@ -3,8 +3,8 @@ package org.kulorido.exception;
 import lombok.Data;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 14:17
+ * @Author kulorido
+ * @Date 2099/12/31 14:17
  * @Version 1.0
  */
 @Data

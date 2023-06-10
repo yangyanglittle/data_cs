@@ -1,4 +1,4 @@
-package jdbcTest;
+package testjdbc;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
@@ -18,5 +18,10 @@ public class TestJdbc {
         HikariDataSource hikariDataSource = testHikariDataSource.initDataSource();
         JdbcTemplate jdbcTemplate = new JdbcTemplate(hikariDataSource);
         jdbcTemplate.execute("select * from table_config");
+    }
+
+    @Test
+    public void a(){
+        System.out.println(1);
     }
 }

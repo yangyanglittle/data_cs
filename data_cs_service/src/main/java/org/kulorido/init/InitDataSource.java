@@ -1,11 +1,11 @@
-package com.baidu.personalcode.crmdatads.init;
+package org.kulorido.init;
 
-import com.baidu.personalcode.crmdatads.common.cache.TableCacheData;
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.common.cache.TableCacheData;
+import org.kulorido.model.TableDbInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,8 +15,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.ORIGIN_DATA_SOURCE;
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.TARGET_DATA_SOURCE;
+import static org.kulorido.common.constants.DataSourceConstants.ORIGIN_DATA_SOURCE;
+import static org.kulorido.common.constants.DataSourceConstants.TARGET_DATA_SOURCE;
+
 
 /**
  * 启动完成自动执行
@@ -53,7 +54,7 @@ public class InitDataSource implements ApplicationRunner {
                     "&rewriteBatchedStatements=true");
             config.setDriverClassName("com.mysql.jdbc.Driver");
             // 1源数据库连接，2目标数据库连接
-            String dataSourceName = "1".equalsIgnoreCase(dataSourceTableConfig.getDbType()) ?
+            String dataSourceName = 1 == dataSourceTableConfig.getDbType() ?
                     k + "_" + ORIGIN_DATA_SOURCE : k + "_" + TARGET_DATA_SOURCE;
             config.setPoolName(dataSourceName);
             //默认配置

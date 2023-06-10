@@ -1,54 +1,45 @@
 package org.kulorido.util;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.slf4j.MDC;
+import org.kulorido.exception.DataSynchronizationThreadException;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.baidu.personalcode.crmdatads.common.constants.BceConstant.X_BCE_REQUEST_ID;
+import static org.kulorido.common.constants.ResponseConstants.RES_MSG_QUEUE_MAX_RESTRICT;
+
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 15:23
+ * @Author kulorido
+ * @Date 2099/12/31 15:23
  * @Version 1.0
  */
 public class ThreadUtil {
 
-    /**
-     * 启动新线程，并带上老线程的request
-     */
-    public static void startNewThread(Runnable r) {
-        new Thread(() -> {
-            try {
-                MDC.put(X_BCE_REQUEST_ID, UUID.randomUUID().toString());
-                r.run();
-            } finally {
-                MDC.remove(X_BCE_REQUEST_ID);
-            }
-        }).start();
-    }
+    private static final int COUNT_BITS = Integer.SIZE - 18;
 
-    /**
-     * 新建线程池
-     * @param corePoolSize
-     * @param maxPoolSize
-     * @param queueSize
-     * @param threadNamePrefix
-     * maxPoolSize不要设置太大，有些服务设置了安全策略和QPS限制
-     * @return
-     */
+    private static final int CAPACITY   = (1 << COUNT_BITS) - 1;
+
+    public static final int QUEUE_SIZE   = (1 << COUNT_BITS) / 2;
+
     public static ExecutorService getExecutorService(int corePoolSize,
                                                      int maxPoolSize,
                                                      int queueSize,
-                                                     String threadNamePrefix){
+                                                     String threadNamePrefix,
+                                                     RejectedExecutionHandler rejectedExecutionHandler){
+        if (queueSize > CAPACITY){
+            throw new DataSynchronizationThreadException(RES_MSG_QUEUE_MAX_RESTRICT);
+        }
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(threadNamePrefix + "-%d").build();
-
+        if (null == rejectedExecutionHandler){
+            return new ThreadPoolExecutor(corePoolSize, maxPoolSize,60, TimeUnit.SECONDS,
+                    new LinkedBlockingDeque<>(queueSize), threadFactory, new ThreadPoolExecutor.AbortPolicy());
+        }
         return new ThreadPoolExecutor(corePoolSize, maxPoolSize,60, TimeUnit.SECONDS,
-                new LinkedBlockingDeque<>(queueSize),threadFactory,new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingDeque<>(queueSize), threadFactory, rejectedExecutionHandler);
     }
 }

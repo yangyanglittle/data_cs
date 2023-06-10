@@ -1,23 +1,23 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.thread;
+package org.kulorido.service.datasynchronization.thread;
 
-import com.baidu.personalcode.crmdatads.builder.DataBaseBuilder;
-import com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.DataThreadPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.JdbcThreadPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.MybatisThreadPo;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.builder.DataBaseBuilder;
+import org.kulorido.common.constants.DataSourceConstants;
+import org.kulorido.pojo.datasync.thread.DataThreadPo;
+import org.kulorido.pojo.datasync.thread.JdbcThreadPo;
+import org.kulorido.pojo.datasync.thread.MybatisThreadPo;
+import org.kulorido.util.DataEmptyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.SQLException;
 
-import static com.baidu.personalcode.crmdatads.builder.DataBaseBuilder.clearThreadDataSource;
-import static com.baidu.personalcode.crmdatads.common.constants.QuantitativeRestrictionsConstants.THREAD_NUM_SYNC_FLAG;
+import static org.kulorido.builder.DataBaseBuilder.clearThreadDataSource;
+import static org.kulorido.common.constants.QuantitativeRestrictionsConstants.THREAD_NUM_SYNC_FLAG;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/27 10:47
+ * @Author kulorido
+ * @Date 2099/12/31 10:47
  * @Version 1.0
  */
 @Slf4j
@@ -71,6 +71,7 @@ public abstract class DataAbstractThreadService implements DataThreadService {
      */
     public void mybatisAsynchronousExecution(MybatisThreadPo mybatisThreadPo){
         try{
+            mybatisThreadPo.setRetryFlag("mybatis");
             refreshThreadDataSource(mybatisThreadPo.getTargetDataSourceName());
             mybatisAsynchronousExecutionInvoke(mybatisThreadPo);
         }catch (Exception e){

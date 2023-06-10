@@ -1,19 +1,23 @@
-package com.baidu.personalcode.crmdatads.service.retry.impl;
+package org.kulorido.service.retry.impl;
 
-import com.baidu.personalcode.crmdatads.builder.DataBaseBuilder;
-import com.baidu.personalcode.crmdatads.mapper.SynchronizationBaseMapper;
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.MybatisDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.JdbcThreadErrorPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.MybatisThreadPo;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations.MybatisDataSynchronization;
-import com.baidu.personalcode.crmdatads.service.retry.ExceptionRetryStrategyService;
-import com.baidu.personalcode.crmdatads.util.AbstractJudge;
-import com.baidu.personalcode.crmdatads.util.JsonUtil;
-import com.baidu.personalcode.crmdatads.util.ThreadUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.builder.DataBaseBuilder;
+import org.kulorido.exception.DataSynchronizationException;
+import org.kulorido.mapper.SynchronizationBaseMapper;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.MybatisDataSynchronizationPo;
+import org.kulorido.pojo.datasync.thread.BaseErrorPo;
+import org.kulorido.pojo.datasync.thread.JdbcThreadErrorPo;
+import org.kulorido.pojo.datasync.thread.MybatisThreadPo;
+import org.kulorido.service.datasynchronization.databaseoperations.MybatisDataSynchronization;
+import org.kulorido.service.rejected.CustomRejectedExecutionHandler;
+import org.kulorido.service.retry.DataRetryAbstract;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.DataSynchronizationJudge;
+import org.kulorido.util.JsonUtil;
+import org.kulorido.util.ThreadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,18 +28,20 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.MASTER_SOURCE;
-import static com.baidu.personalcode.crmdatads.common.constants.DataSynchronizationConstants.ASYNC_DATA_RETRY_FLAG;
-import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstants.RES_MSG_DATA_NULL_BASIC;
+import static org.kulorido.common.constants.DataSourceConstants.MASTER_SOURCE;
+import static org.kulorido.common.constants.DataSynchronizationConstants.ASYNC_DATA_RETRY_FLAG;
+import static org.kulorido.common.constants.ResponseConstants.RES_MSG_DATA_NULL_BASIC;
+import static org.kulorido.util.ThreadUtil.QUEUE_SIZE;
+
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 17:12
+ * @Author kulorido
+ * @Date 2099/12/31 17:12
  * @Version 1.0
  */
 @Service("asyncDataRetryService")
 @Slf4j
-public class AsyncDataRetryService implements ExceptionRetryStrategyService {
+public class AsyncDataRetryService extends DataRetryAbstract {
 
     @Autowired
     private SynchronizationBaseMapper synchronizationBaseMapper;
@@ -45,6 +51,9 @@ public class AsyncDataRetryService implements ExceptionRetryStrategyService {
 
     @Autowired
     private DynamicRoutingDataSource dynamicRoutingDataSource;
+
+    @Autowired
+    private CustomRejectedExecutionHandler rejectedExecutionHandler;
 
     /**
      * 重试分为两种
@@ -56,14 +65,15 @@ public class AsyncDataRetryService implements ExceptionRetryStrategyService {
      * @param retryParam
      */
     @Override
-    public void retry(String retryParam) {
+    public void executeRetry(String retryParam) {
         retryParam = retryParam.substring(1, retryParam.length() - 1).replace("\\", "");
+        BaseErrorPo baseErrorPo = JsonUtil.deserialize(retryParam, BaseErrorPo.class);
         // 包含了insert，说明是mybatis跑的，这里直接插入，但是数据源要切换以下，切换到target数据源
-        if (retryParam.toLowerCase().contains(ASYNC_DATA_RETRY_FLAG.toLowerCase())){
-
+        if (baseErrorPo.getRetryFlag().equals("mybatis")){
             // 解析的时候需要判断json里面是否嵌套了json数据，不然解析的时候有问题
-            retryParam = this.couversionRetryParam(retryParam);
+            retryParam = this.conversionRetryParam(retryParam);
             MybatisThreadPo mybatisThreadPo = JsonUtil.deserialize(retryParam, MybatisThreadPo.class);
+            DataSynchronizationJudge.isNull(mybatisThreadPo.getParam(), "请求SQL为空，请重新执行数据写入操作");
             DataBaseBuilder.refreshThreadDataSource(mybatisThreadPo.getTargetDataSourceName(),
                     dynamicRoutingDataSource);
             // 如果insert语句中有特殊字符，这里将无法插入，暂时需要自行手动处理下
@@ -92,12 +102,12 @@ public class AsyncDataRetryService implements ExceptionRetryStrategyService {
                 dataResultMaps = synchronizationBaseMapper.getOriginDataBySql(
                         conversionReadSql);
             }
-            AbstractJudge.isNull(dataResultMaps, RES_MSG_DATA_NULL_BASIC);
+            DataSynchronizationJudge.isNull(dataResultMaps, RES_MSG_DATA_NULL_BASIC);
 
             DataBaseBuilder.clearThreadDataSource();
 
             ExecutorService executorService = ThreadUtil.getExecutorService(5, 20,
-                    Integer.MAX_VALUE, "mybatis-batch-insert-into-table");
+                    QUEUE_SIZE, "mybatis-batch-insert-into-table", rejectedExecutionHandler);
 
             // 使用target的数据源
             String targetDataSource = DataBaseBuilder.getDataSourceName(
@@ -126,7 +136,7 @@ public class AsyncDataRetryService implements ExceptionRetryStrategyService {
      * @param retryParam
      * @return
      */
-    private String couversionRetryParam(String retryParam){
+    private String conversionRetryParam(String retryParam){
         Map<String, List<Integer>> firstJsonFlag = getKeyIndex(retryParam, "{");
         Map<String, List<Integer>> lastJsonFlag = getKeyIndex(retryParam, "}");
         if (firstJsonFlag.get("{").size() > 1){
@@ -134,7 +144,7 @@ public class AsyncDataRetryService implements ExceptionRetryStrategyService {
             firstJsonFlag.get("{").remove(0);
             lastJsonFlag.get("}").remove(lastJsonFlag.get("}").size() - 1);
             if (firstJsonFlag.size() != lastJsonFlag.size()){
-                throw new RuntimeException("两边json数据不一致，请开发人员核实");
+                throw new DataSynchronizationException("两边json数据不一致，请开发人员核实");
             }
             for (int i = 0; i < firstJsonFlag.get("{").size(); i++){
                 int firstIndex = firstJsonFlag.get("{").get(i);

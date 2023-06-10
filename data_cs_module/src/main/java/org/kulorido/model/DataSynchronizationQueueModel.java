@@ -1,4 +1,4 @@
-package com.baidu.personalcode.crmdatads.model;
+package org.kulorido.model;
 
 import lombok.Data;
 

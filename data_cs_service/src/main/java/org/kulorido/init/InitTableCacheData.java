@@ -1,4 +1,4 @@
-package org.kulorido.config;
+package org.kulorido.init;
 
 /**
  * @Author kulorido

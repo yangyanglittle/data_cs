@@ -1,33 +1,35 @@
-package org.kulorido;
+package org.kulorido.impl;
 
-import com.baidu.personalcode.crmdatads.mapper.DataSynchronizationQueueMapper;
-import com.baidu.personalcode.crmdatads.model.DataSynchronizationQueueModel;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.service.factory.DataSynchronizationFactory;
-import com.baidu.personalcode.crmdatads.task.base.TaskBaseService;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
-import com.baidu.personalcode.crmdatads.util.JsonUtil;
+
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.base.JobAbstractService;
+import org.kulorido.mapper.DataSynchronizationQueueMapper;
+import org.kulorido.model.DataSynchronizationQueueModel;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.work.JobPo;
+import org.kulorido.service.factory.DataSynchronizationFactory;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 
-import static com.baidu.personalcode.crmdatads.builder.DataBaseBuilder.clearThreadDataSource;
-import static com.baidu.personalcode.crmdatads.builder.DataBaseBuilder.refreshThreadDataSource;
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.MASTER_SOURCE;
+import static org.kulorido.builder.DataBaseBuilder.clearThreadDataSource;
+import static org.kulorido.builder.DataBaseBuilder.refreshThreadDataSource;
+import static org.kulorido.common.constants.DataSourceConstants.MASTER_SOURCE;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/27 13:21
+ * @Author kulorido
+ * @Date 2099/12/31 13:21
  * @Version 1.0
  */
-@Service(value = "dataSynchronizationTask")
+@Service(value = "dataSynchronizationJob")
 @Slf4j
-public class DataSynchronizationWorkerImpl extends TaskBaseService {
+public class DataSynchronizationWorkerImpl extends JobAbstractService {
 
     @Autowired
     private DataSynchronizationQueueMapper dataSynchronizationQueueMapper;
@@ -39,7 +41,7 @@ public class DataSynchronizationWorkerImpl extends TaskBaseService {
     private DynamicRoutingDataSource dynamicRoutingDataSource;
 
     @Override
-    public void worker() {
+    public void worker(JobPo jobPo) {
 
         try {
             log.info("dataSynchronizationTask dynamicRoutingDataSource :{}",

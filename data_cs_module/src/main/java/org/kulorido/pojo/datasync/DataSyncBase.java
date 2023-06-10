@@ -1,4 +1,4 @@
-package com.baidu.personalcode.crmdatads.pojo.datasync;
+package org.kulorido.pojo.datasync;
 
 import lombok.Data;
 
@@ -6,8 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/20 13:52
+ * @Author kulorido
  * @Version 1.0
  */
 @Data

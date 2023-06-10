@@ -1,27 +1,27 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.invoke;
+package org.kulorido.service.datasynchronization.invoke;
 
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.MybatisDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.DataThreadPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.MybatisThreadPo;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.invoke.base.MybatisDataSynchronizationBase;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.thread.DataThreadService;
-import com.baidu.personalcode.crmdatads.util.AbstractJudge;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.MybatisDataSynchronizationPo;
+import org.kulorido.pojo.datasync.thread.DataThreadPo;
+import org.kulorido.pojo.datasync.thread.MybatisThreadPo;
+import org.kulorido.service.datasynchronization.invoke.base.MybatisDataSynchronizationBase;
+import org.kulorido.service.datasynchronization.thread.DataThreadService;
+import org.kulorido.service.thread.MybatisDataSynchronizationInvokeThread;
+import org.kulorido.util.DataSynchronizationJudge;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.MASTER_SOURCE;
-import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstants.RES_MSG_NULL_BASIC;
+import static org.kulorido.common.constants.DataSourceConstants.MASTER_SOURCE;
+import static org.kulorido.common.constants.ResponseConstants.RES_MSG_NULL_BASIC;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 18:12
+ * @Author kulorido
+ * @Date 2099/12/31 18:12
  * @Version 1.0
  */
 @Service
@@ -38,7 +38,7 @@ public class MybatisDataSynchronizationInvoke extends MybatisDataSynchronization
     protected void dataSynchronizationPreCheck(DataSynchronizationPoBase dataSynchronizationPoBase) {
         super.dataSynchronizationPreCheck(dataSynchronizationPoBase);
         
-        AbstractJudge.isNull(dataSynchronizationPoBase.getMybatisDataSynchronizationPo(), RES_MSG_NULL_BASIC);
+        DataSynchronizationJudge.isNull(dataSynchronizationPoBase.getMybatisDataSynchronizationPo(), RES_MSG_NULL_BASIC);
     }
 
     @Override
@@ -74,20 +74,17 @@ public class MybatisDataSynchronizationInvoke extends MybatisDataSynchronization
                 dataSynchronizationPoBase.getMybatisDataSynchronizationPo();
 
         for (int i = 0; i < mybatisDataSynchronizationPo.getDataResultMaps().size(); i++) {
+            MybatisThreadPo mybatisThreadPo = new MybatisThreadPo(
+                    mybatisDataSynchronizationPo.getTargetDataSourceName(),
+                    mybatisDataSynchronizationPo.getDataResultMaps(),
+                    mybatisDataSynchronizationPo.getTableName(),
+                    dataSynchronizationPoBase.getConfigId(), i);
 
-            AtomicInteger atomicInteger = new AtomicInteger(i);
-
-            mybatisDataSynchronizationPo.getInsertTableFutures().add(CompletableFuture.runAsync(()-> {
-                try {
-                    dataThreadService.dataThreadInvoke(new DataThreadPo(new MybatisThreadPo(
-                            mybatisDataSynchronizationPo.getTargetDataSourceName(),
-                            mybatisDataSynchronizationPo.getDataResultMaps(),
-                            atomicInteger,
-                            mybatisDataSynchronizationPo.getTableName(),
-                            dataSynchronizationPoBase.getConfigId())));
-                } catch (Exception e) {
-                    log.error("dataThreadService.dataThreadInvoke error", e);
-                }}, executorService));
+            mybatisDataSynchronizationPo.getInsertTableFutures().add(CompletableFuture.runAsync(
+                    new MybatisDataSynchronizationInvokeThread(dataThreadService,
+                            new DataThreadPo(mybatisThreadPo)), executorService)
+            );
         }
+        mybatisDataSynchronizationPo.getInsertTableFutures().forEach(item -> CompletableFuture.allOf(item).join());
     }
 }

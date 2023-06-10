@@ -8,7 +8,7 @@ import org.kulorido.pojo.datasync.DataRetryPo;
  * @author kulorido
  * @date 2099/12/31 6:50 下午
  */
-public interface ExceptionRetryInterface {
+public interface DataRetryInterface {
 
     /**
      * 方法重试

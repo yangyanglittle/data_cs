@@ -1,14 +1,14 @@
-package com.baidu.personalcode.crmdatads.service.factory;
+package org.kulorido.service.factory;
 
-import com.baidu.personalcode.crmdatads.builder.DataBaseBuilder;
-import com.baidu.personalcode.crmdatads.mapper.SynchronizationBaseMapper;
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations.DataSynchronizationPostProcess;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.invoke.JdbcDataSynchronizationInvoke;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.invoke.MybatisDataSynchronizationInvoke;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
+import org.kulorido.builder.DataBaseBuilder;
+import org.kulorido.mapper.SynchronizationBaseMapper;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationPo;
+import org.kulorido.service.datasynchronization.databaseoperations.DataSynchronizationPostProcess;
+import org.kulorido.service.datasynchronization.invoke.JdbcDataSynchronizationInvoke;
+import org.kulorido.service.datasynchronization.invoke.MybatisDataSynchronizationInvoke;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/20 14:29
+ * @Author kulorido
+ * @Date 2099/12/31 14:29
  * @Version 1.0
  */
 @Service

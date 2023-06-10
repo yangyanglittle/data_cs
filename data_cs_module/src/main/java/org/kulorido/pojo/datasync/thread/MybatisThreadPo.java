@@ -11,20 +11,33 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Version 1.0
  */
 @Data
-public class MybatisThreadPo {
+public class MybatisThreadPo extends BaseErrorPo{
 
     public MybatisThreadPo(){}
 
     public MybatisThreadPo(String targetDataSourceName,
                            List<Map<String, Object>> dataResultMaps,
-                           AtomicInteger atomicInteger,
+//                           AtomicInteger atomicInteger,
                            String tableName,
                            String configId){
         this.targetDataSourceName = targetDataSourceName;
         this.dataResultMaps = dataResultMaps;
-        this.atomicInteger = atomicInteger;
+//        this.atomicInteger = atomicInteger;
         this.tableName = tableName;
         this.configId = configId;
+    }
+
+    public MybatisThreadPo(String targetDataSourceName,
+                           List<Map<String, Object>> dataResultMaps,
+//                           AtomicInteger atomicInteger,
+                           String tableName,
+                           String configId, int i){
+        this.targetDataSourceName = targetDataSourceName;
+        this.dataResultMaps = dataResultMaps;
+//        this.atomicInteger = atomicInteger;
+        this.tableName = tableName;
+        this.configId = configId;
+        this.i = i;
     }
 
     private String targetDataSourceName;
@@ -41,4 +54,7 @@ public class MybatisThreadPo {
     private String param;
 
     private String configId;
+
+    private int i;
+
 }

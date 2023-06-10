@@ -1,4 +1,4 @@
-package com.baidu.personalcode.crmdatads.pojo.datasync;
+package org.kulorido.pojo.datasync;
 
 import lombok.Data;
 
@@ -8,8 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 14:31
+ * @Author kulorido
  * @Version 1.0
  */
 @Data

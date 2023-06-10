@@ -1,10 +1,10 @@
 package org.kulorido.mapper;
 
-import com.baidu.personalcode.crmdatads.model.DataSynchronizationQueueModel;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.kulorido.model.DataSynchronizationQueueModel;
 
 import java.util.List;
 
@@ -34,17 +34,6 @@ public interface DataSynchronizationQueueMapper {
         "where is_deal = #{isDeal}"
     })
     List<DataSynchronizationQueueModel> select(DataSynchronizationQueueModel record);
-
-    @Update({
-        "update data_synchronization_queue",
-        "set table_name = #{tableName,jdbcType=VARCHAR},",
-          "is_deal = #{isDeal,jdbcType=BIT},",
-          "create_time = #{createTime,jdbcType=TIMESTAMP},",
-          "update_time = #{updateTime,jdbcType=TIMESTAMP},",
-          "param = #{param,jdbcType=LONGVARCHAR}",
-        "where id = #{id,jdbcType=BIGINT}"
-    })
-    int updateByPrimaryKeyWithBLOBs(DataSynchronizationQueueModel record);
 
     @Update({
         "update data_synchronization_queue",

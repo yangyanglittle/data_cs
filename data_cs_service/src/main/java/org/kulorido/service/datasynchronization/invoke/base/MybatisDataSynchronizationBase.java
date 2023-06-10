@@ -1,17 +1,18 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.invoke.base;
+package org.kulorido.service.datasynchronization.invoke.base;
 
-import com.baidu.personalcode.crmdatads.mapper.SynchronizationBaseMapper;
-import com.baidu.personalcode.crmdatads.model.SynchronizationBaseModel;
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.MybatisDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.base.DBSynchronization;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations.MybatisDataSynchronization;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
-import com.baidu.personalcode.crmdatads.util.ThreadUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.mapper.SynchronizationBaseMapper;
+import org.kulorido.model.SynchronizationBaseModel;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.MybatisDataSynchronizationPo;
+import org.kulorido.service.datasynchronization.base.DBSynchronization;
+import org.kulorido.service.datasynchronization.databaseoperations.MybatisDataSynchronization;
+import org.kulorido.service.rejected.CustomRejectedExecutionHandler;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.ThreadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.SQLException;
@@ -21,12 +22,13 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static com.baidu.personalcode.crmdatads.builder.DataBaseBuilder.getDataSourceName;
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.MASTER_SOURCE;
+import static org.kulorido.builder.DataBaseBuilder.getDataSourceName;
+import static org.kulorido.common.constants.DataSourceConstants.MASTER_SOURCE;
+import static org.kulorido.util.ThreadUtil.QUEUE_SIZE;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 18:12
+ * @Author kulorido
+ * @Date 2099/12/31 18:12
  * @Version 1.0
  */
 @Slf4j
@@ -37,6 +39,9 @@ public abstract class MybatisDataSynchronizationBase extends DBSynchronization i
 
     @Autowired
     private SynchronizationBaseMapper synchronizationBaseMapper;
+
+    @Autowired
+    private CustomRejectedExecutionHandler rejectedExecutionHandler;
 
     @Override
     protected void doDataSynchronization(DataSynchronizationPoBase dataSynchronizationPoBase) throws SQLException {
@@ -60,9 +65,8 @@ public abstract class MybatisDataSynchronizationBase extends DBSynchronization i
         String originDataSourceName = getDataSourceName(
                 new TableDbInfo(dataSynchronizationPoBase.getConfigId()), true);
 
-
-        ExecutorService executorService = ThreadUtil.getExecutorService(5, 20,
-                Integer.MAX_VALUE, "mybatis-batch-insert-into-table");
+        ExecutorService executorService = ThreadUtil.getExecutorService(8, 16,
+                QUEUE_SIZE, "mybatis-batch-insert-into-table", rejectedExecutionHandler);
 
         List<CompletableFuture<Void>> insertTableFutures = new ArrayList<>();
         MybatisDataSynchronizationPo mybatisDataSynchronizationPo =

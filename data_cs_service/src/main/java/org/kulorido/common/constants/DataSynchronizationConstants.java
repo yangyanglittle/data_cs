@@ -1,8 +1,8 @@
-package com.baidu.personalcode.crmdatads.common.constants;
+package org.kulorido.common.constants;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/27 16:48
+ * @Author kulorido
+ * @Date 2099/12/31 16:48
  * @Version 1.0
  */
 public class DataSynchronizationConstants {

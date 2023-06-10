@@ -1,21 +1,21 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.invoke;
+package org.kulorido.service.datasynchronization.invoke;
 
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationOperation;
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.DataThreadPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.JdbcThreadPo;
-import com.baidu.personalcode.crmdatads.service.TableDbInfoService;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations.JdbcDataSynchronization;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.invoke.base.JdbcDataSynchronizationBase;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.thread.DataThreadService;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.thread.local.JdbcDataSyncThreadLocal;
-import com.baidu.personalcode.crmdatads.util.AbstractJudge;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
-import com.baidu.personalcode.crmdatads.util.JdbcUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.exception.DataSynchronizationDataSourceException;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationOperation;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationPo;
+import org.kulorido.pojo.datasync.thread.DataThreadPo;
+import org.kulorido.pojo.datasync.thread.JdbcThreadPo;
+import org.kulorido.service.MysqlTableConfigService;
+import org.kulorido.service.datasynchronization.invoke.base.JdbcDataSynchronizationBase;
+import org.kulorido.service.datasynchronization.thread.DataThreadService;
+import org.kulorido.service.datasynchronization.thread.local.JdbcDataSyncThreadLocal;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.DataSynchronizationJudge;
+import org.kulorido.util.JdbcUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,15 +25,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
-import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstants.RES_MSG_DATA_NULL_BASIC;
-import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstants.RES_MSG_NULL_BASIC;
+import static org.kulorido.common.constants.ResponseConstants.RES_MSG_DATA_NULL_BASIC;
+import static org.kulorido.common.constants.ResponseConstants.RES_MSG_NULL_BASIC;
 
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 14:13
+ * @Author kulorido
+ * @Date 2099/12/31 14:13
  * @Version 1.0
  */
 @Service
@@ -41,7 +43,7 @@ import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstant
 public class JdbcDataSynchronizationInvoke extends JdbcDataSynchronizationBase {
 
     @Autowired
-    private TableDbInfoService tableDbInfoService;
+    private MysqlTableConfigService tableDbInfoService;
 
     @Autowired
     private DataThreadService dataThreadService;
@@ -54,7 +56,7 @@ public class JdbcDataSynchronizationInvoke extends JdbcDataSynchronizationBase {
         super.dataSynchronizationPreCheck(dataSynchronizationPoBase);
 
         JdbcDataSynchronizationPo jdbcDataSynchronizationPo = dataSynchronizationPoBase.getJdbcDataSynchronizationPo();
-        AbstractJudge.isNull(jdbcDataSynchronizationPo, RES_MSG_NULL_BASIC);
+        DataSynchronizationJudge.isNull(jdbcDataSynchronizationPo, RES_MSG_NULL_BASIC);
     }
 
     @Override
@@ -64,10 +66,16 @@ public class JdbcDataSynchronizationInvoke extends JdbcDataSynchronizationBase {
 
         List<TableDbInfo> tableDbInfos = tableDbInfoService.queryByConfigId(dataSynchronizationPoBase.getConfigId());
 
-        AbstractJudge.isNull(tableDbInfos, RES_MSG_DATA_NULL_BASIC);
+        DataSynchronizationJudge.isNull(tableDbInfos, RES_MSG_DATA_NULL_BASIC);
 
-        TableDbInfo md = tableDbInfos.get(0);
-        TableDbInfo td = tableDbInfos.get(1);
+        if (tableDbInfos.size() != 2){
+            throw new DataSynchronizationDataSourceException("数据库配置错误，一个config只允许出现两个DB配置");
+        }
+        Map<Integer, List<TableDbInfo>> dbTypeMaps = tableDbInfos.stream().collect(Collectors.groupingBy(
+                TableDbInfo::getDbType));
+
+        TableDbInfo md = dbTypeMaps.get(1).get(0);
+        TableDbInfo td = dbTypeMaps.get(2).get(0);
         Connection masterConn = JdbcUtil.getConn2(md);
         Statement originDataSourceLink =  masterConn.createStatement();
         Connection targetConn = JdbcUtil.getConn2(td);

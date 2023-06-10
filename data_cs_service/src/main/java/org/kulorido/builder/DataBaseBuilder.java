@@ -1,20 +1,20 @@
 package org.kulorido.builder;
 
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.util.DataEmptyUtil;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.ORIGIN_DATA_SOURCE;
-import static com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants.TARGET_DATA_SOURCE;
+import static org.kulorido.common.constants.DataSourceConstants.ORIGIN_DATA_SOURCE;
+import static org.kulorido.common.constants.DataSourceConstants.TARGET_DATA_SOURCE;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/26 11:22
+ * @Author kulorido
+ * @Date 2099/12/31 11:22
  * @Version 1.0
  */
 public class DataBaseBuilder {
@@ -26,7 +26,7 @@ public class DataBaseBuilder {
             }
             return tableDb.getConfigId() + "_" + TARGET_DATA_SOURCE;
         }
-        return "1".equalsIgnoreCase(tableDb.getDbType()) ?
+        return 1 == tableDb.getDbType() ?
                 tableDb.getConfigId() + "_" + ORIGIN_DATA_SOURCE :
                 tableDb.getConfigId() + "_" + TARGET_DATA_SOURCE;
     }

@@ -1,2 +1,9 @@
-package org.kulorido.pojo.datasync;public class DataRetryPo {
+package org.kulorido.pojo.datasync;
+
+import lombok.Data;
+
+@Data
+public class DataRetryPo {
+
+    private String retryParam;
 }

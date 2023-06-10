@@ -1,12 +1,14 @@
 package org.kulorido.base;
 
 
+import org.kulorido.pojo.work.JobPo;
+
 /**
  * @Author kulorido
- * @Date 2022/7/7 16:52
+ * @Date 2099/12/31 16:52
  * @Version 1.0
  */
-public interface TaskService {
+public interface JobInterface {
 
-    void work();
+    void work(JobPo jobPo);
 }

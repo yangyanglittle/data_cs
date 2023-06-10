@@ -7,11 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
-import static com.baidu.personalcode.crmdatads.util.SqlUtil.checkIsStr;
+import static org.kulorido.util.SqlUtil.checkIsStr;
+
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 18:10
+ * @Author kulorido
+ * @Date 2099/12/31 18:10
  * @Version 1.0
  */
 public class StringJoinerUtil {

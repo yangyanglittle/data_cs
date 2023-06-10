@@ -1,8 +1,8 @@
 package org.kulorido.builder;
 
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationOperation;
-import com.baidu.personalcode.crmdatads.util.JdbcUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationOperation;
+import org.kulorido.util.JdbcUtil;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,11 +14,11 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.StringJoiner;
 
-import static com.baidu.personalcode.crmdatads.util.SqlUtil.checkIsStr;
+import static org.kulorido.util.SqlUtil.checkIsStr;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/19 19:44
+ * @Author kulorido
+ * @Date 2099/12/31 19:44
  * @Version 1.0
  */
 @Component
@@ -44,7 +44,7 @@ public class BuilderPreparedStatementParam {
                     String c = colList.get(k);
                     String d2 = resultSet.getString(c);
                     String type = colTypeList.get(k);
-                    if (d2 == null || "NULL".equals(d2.toUpperCase())){
+                    if (d2 == null || "NULL".equalsIgnoreCase(d2)){
                         statement.setString(k + 1, "NULL");
                     }else {
                         boolean isStr = checkIsStr(type);

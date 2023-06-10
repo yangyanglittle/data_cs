@@ -7,21 +7,21 @@ import java.util.Date;
 
 /**
  * @package org.kulorido.model
- * @Author v_xueweidong
+ * @Author kulorido
  * @Data 2023/6/9 13:54
  */
 @Data
-public class BaseAuthModel {
+public class BaseOperatorModel {
 
     /** 创建时间 */
-    private Date createBy;
+    private String createBy;
 
     /** 创建时间 */
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 创建时间 */
-    private Date updateBy;
+    private String updateBy;
 
     /** 创建时间 */
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

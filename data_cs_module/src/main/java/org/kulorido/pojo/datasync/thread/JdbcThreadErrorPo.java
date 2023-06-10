@@ -7,7 +7,7 @@ import lombok.Data;
  * @Version 1.0
  */
 @Data
-public class JdbcThreadErrorPo {
+public class JdbcThreadErrorPo extends BaseErrorPo{
 
     public JdbcThreadErrorPo(){}
 

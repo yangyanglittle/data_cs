@@ -1,2 +1,7 @@
-package org.kulorido.pojo.work;public class JobPo {
+package org.kulorido.pojo.work;
+
+import lombok.Data;
+
+@Data
+public class JobPo {
 }

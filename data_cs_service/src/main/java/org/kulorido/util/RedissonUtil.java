@@ -1,4 +1,4 @@
-package com.baidu.personalcode.crmdatads.util;
+package org.kulorido.util;
 
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @package com.baidu.personalcode.crmdatads.util
- * @Author v_xueweidong
+ * @Author kulorido
  * @Data 2023/6/8 13:35
  */
 @Component
@@ -38,7 +37,7 @@ public class RedissonUtil {
     public RLock lock(String lockKey, long leaseTime) {
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock(leaseTime, TimeUnit.SECONDS);
-        return null;
+        return lock;
     }
 
     /**

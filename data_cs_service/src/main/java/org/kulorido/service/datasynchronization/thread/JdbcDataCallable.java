@@ -1,8 +1,9 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.thread;
+package org.kulorido.service.datasynchronization.thread;
 
-import com.baidu.personalcode.crmdatads.common.constants.ResponseConstants;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.JdbcThreadPo;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.common.constants.ResponseConstants;
+import org.kulorido.pojo.datasync.thread.JdbcThreadPo;
+import org.kulorido.service.datasynchronization.thread.error.CustomJdbcExecutionError;
 
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
@@ -10,8 +11,8 @@ import java.util.concurrent.Callable;
 
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 15:22
+ * @Author kulorido
+ * @Date 2099/12/31 15:22
  * @Version 1.0
  */
 @Slf4j
@@ -33,7 +34,7 @@ public class JdbcDataCallable implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
+    public String call() {
         String writeSql = "";
         try {
 

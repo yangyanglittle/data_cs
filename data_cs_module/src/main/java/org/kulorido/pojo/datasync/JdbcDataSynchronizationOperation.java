@@ -1,16 +1,15 @@
-package com.baidu.personalcode.crmdatads.pojo.datasync;
+package org.kulorido.pojo.datasync;
 
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
+import org.kulorido.model.TableDbInfo;
 
 import java.sql.Connection;
 import java.sql.Statement;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/19 17:49
+ * @Author kulorido
  * @Version 1.0
  */
 @Data

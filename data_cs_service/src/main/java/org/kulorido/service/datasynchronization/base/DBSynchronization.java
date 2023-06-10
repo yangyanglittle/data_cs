@@ -1,12 +1,12 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.base;
+package org.kulorido.service.datasynchronization.base;
 
-import com.baidu.personalcode.crmdatads.mapper.SynchronizationBaseMapper;
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
-import com.baidu.personalcode.crmdatads.util.JdbcUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.mapper.SynchronizationBaseMapper;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationPo;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.JdbcUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.ResultSet;
@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/23 19:28
+ * @Author kulorido
+ * @Date 2099/12/31 19:28
  * @Version 1.0
  */
 @Slf4j

@@ -3,7 +3,9 @@ package org.kulorido.service;
 import lombok.extern.slf4j.Slf4j;
 import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
 import org.kulorido.pojo.datasync.MybatisDataSynchronizationPo;
+import org.kulorido.request.SyncMysqlDataRequest;
 import org.kulorido.service.factory.DataSynchronizationFactory;
+import org.kulorido.util.DataSynchronizationJudge;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -19,23 +21,23 @@ import java.util.Set;
 @Service
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Slf4j
-public class TableDataSyncService {
+public class MysqlTableDataSyncService {
 
     @Autowired
     private DataSynchronizationFactory dataSynchronizationFactory;
 
     /**
-     *
-     * @param configId
-     * @param tableName
-     * @param size
+     * @param syncMysqlDataRequest
      */
-    public void syncTableData(String configId, String tableName, Integer size){
+    public void syncTableData(SyncMysqlDataRequest syncMysqlDataRequest){
 
-        Set<String> tableList = new HashSet<>(Arrays.asList(tableName.split(",")));
+        DataSynchronizationJudge.isAnyParamEmpty(syncMysqlDataRequest, syncMysqlDataRequest.getConfigId(),
+                syncMysqlDataRequest.getTableName());
+
+        Set<String> tableList = new HashSet<>(Arrays.asList(syncMysqlDataRequest.getTableName().split(",")));
         DataSynchronizationPoBase dataSynchronizationPoBase = new DataSynchronizationPoBase();
-        dataSynchronizationPoBase.setConfigId(configId);
-        dataSynchronizationPoBase.setSize(size);
+        dataSynchronizationPoBase.setConfigId(syncMysqlDataRequest.getConfigId());
+        dataSynchronizationPoBase.setSize(syncMysqlDataRequest.getSize());
         dataSynchronizationPoBase.setTableList(tableList);
         // 默认使用队列
         dataSynchronizationPoBase.setQueue(true);
@@ -47,9 +49,4 @@ public class TableDataSyncService {
         dataSynchronizationFactory.getDataSynchronizationPostProcess(dataSynchronizationPoBase)
                 .dataProcess(dataSynchronizationPoBase);
     }
-
-
-
-
-
 }

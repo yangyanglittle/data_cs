@@ -1,69 +1,69 @@
-package com.baidu.personalcode.crmdatads.service.retry;
+package org.kulorido.service.retry;
 
-
-import com.baidu.personalcode.crmdatads.common.enums.ExceptionRetryStrategyEnum;
-import com.baidu.personalcode.crmdatads.common.enums.IsDealEnum;
-import com.baidu.personalcode.crmdatads.mapper.retry.ExceptionRetryMapper;
-import com.baidu.personalcode.crmdatads.retry.ExceptionRetryModel;
-import com.baidu.personalcode.crmdatads.util.JsonUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.enums.DataRetryEnum;
+import org.kulorido.mapper.DataRetryMapper;
+import org.kulorido.model.DataRetryModel;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * 异常重试service
  *
- * @author guanqi01@baidu.com
- * @date 2022/1/19 6:55 下午
+ * @author kulorido
+ * @date 2099/12/31 6:55 下午
  */
 @Service
 @Slf4j
 public class ExceptionRetryService {
 
     @Autowired
-    private ExceptionRetryMapper exceptionRetryMapper;
+    private DataRetryMapper dataRetryMapper;
 
     @Autowired
     private DynamicRoutingDataSource dynamicRoutingDataSource;
 
     /**
-     * 插入异常重试表
-     *
-     * @param exceptionRetryStrategyEnum 异常重试策略枚举
-     * @param objectId                   objectId 如伙伴Id，也可不填写
-     * @param param                      重试参数
-     * @author guanqi01@baidu.com
-     * @date 2022/1/19 8:38 下午
+     * @param dataRetryEnum
+     * @param exceptionServiceId
+     * @param retryParam
+     * @param exceptionReason
+     * @param <T>
      */
-    public <T> void insertExceptionRetry(ExceptionRetryStrategyEnum exceptionRetryStrategyEnum
-            , String objectId, T param, String exceptionReason) {
+    public <T> void insertExceptionRetry(DataRetryEnum dataRetryEnum, String exceptionServiceId, T retryParam,
+                                         String exceptionReason) {
         try {
+            if (DataEmptyUtil.isEmpty(exceptionServiceId)){
+                log.error("exceptionServiceId is null");
+                return;
+            }
+            if (DataEmptyUtil.isEmpty(retryParam)){
+                log.error("retryParam is null");
+                return;
+            }
             Date date = new Date();
-            ExceptionRetryModel exceptionRetry = new ExceptionRetryModel();
-            exceptionRetry.setExceptionType(exceptionRetryStrategyEnum.getExceptionType());
-            exceptionRetry.setExceptionMessage(exceptionRetryStrategyEnum.getExceptionMessage());
-            exceptionRetry.setObjectId(objectId);
-            exceptionRetry.setObjectType(exceptionRetryStrategyEnum.getObjectType());
-            exceptionRetry.setDealNum(0);
-            exceptionRetry.setMaxNum(exceptionRetryStrategyEnum.getMaxDealNum());
-            exceptionRetry.setIsDeal(IsDealEnum.NO.getKey());
+            DataRetryModel exceptionRetry = new DataRetryModel();
+            exceptionRetry.setId(UUID.randomUUID().toString());
+            exceptionRetry.setExceptionType(dataRetryEnum.getExceptionType());
+            exceptionRetry.setExceptionMessage(dataRetryEnum.getErrorMsg());
+            exceptionRetry.setExceptionServiceId(exceptionServiceId);
+            exceptionRetry.setMaxRetryNum(dataRetryEnum.getRetryCount());
             exceptionRetry.setCreateTime(date);
             exceptionRetry.setUpdateTime(date);
-            exceptionRetry.setParam(JsonUtil.serialize(param));
+            exceptionRetry.setRetryParam(JsonUtil.serialize(retryParam));
             exceptionRetry.setExceptionReason(exceptionReason);
-            exceptionRetryMapper.insert(exceptionRetry);
+            dataRetryMapper.insert(exceptionRetry);
         } catch (Exception e) {
             log.info("exception retry service use data source:{}, key:{}",
                     dynamicRoutingDataSource.determineDataSource(), DynamicDataSourceContextHolder.peek());
-            log.error("insert exception retry fail;exceptionMessage={}, param = {}"
-                    , exceptionRetryStrategyEnum.getExceptionMessage()
-                    , param
-                    , e);
+            log.error("insert data retry fail;exceptionMessage={}", e.getMessage(), e);
         }
     }
-
 }

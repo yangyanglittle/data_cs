@@ -1,20 +1,19 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.base;
+package org.kulorido.service.datasynchronization.base;
 
-import com.baidu.bce.crm.bizcom.lock.db.TaskLocker;
-import com.baidu.bce.crm.bizcom.lock.db.service.TaskLockService;
-import com.baidu.personalcode.crmdatads.common.constants.DataSourceConstants;
-import com.baidu.personalcode.crmdatads.mapper.DataSynchronizationQueueMapper;
-import com.baidu.personalcode.crmdatads.model.DataSynchronizationQueueModel;
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationOperation;
-import com.baidu.personalcode.crmdatads.pojo.datasync.JdbcDataSynchronizationPo;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations.DataSynchronizationPostProcess;
-import com.baidu.personalcode.crmdatads.util.AbstractJudge;
-import com.baidu.personalcode.crmdatads.util.DataEmptyUtil;
-import com.baidu.personalcode.crmdatads.util.DateCstUtils;
-import com.baidu.personalcode.crmdatads.util.JsonUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.common.constants.DataSourceConstants;
+import org.kulorido.mapper.DataSynchronizationQueueMapper;
+import org.kulorido.model.DataSynchronizationQueueModel;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationOperation;
+import org.kulorido.pojo.datasync.JdbcDataSynchronizationPo;
+import org.kulorido.service.datasynchronization.databaseoperations.DataSynchronizationPostProcess;
+import org.kulorido.util.DataEmptyUtil;
+import org.kulorido.util.DataSynchronizationJudge;
+import org.kulorido.util.DateUtils;
+import org.kulorido.util.JsonUtil;
+import org.kulorido.util.RedissonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +21,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 
-import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstants.RES_MSG_NULL_BASIC;
+import static org.kulorido.common.constants.ResponseConstants.RES_MSG_NULL_BASIC;
 
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 13:06
+ * @Author kulorido
+ * @Date 2099/12/31 13:06
  * @Version 1.0
  */
 @Slf4j
@@ -35,7 +34,7 @@ import static com.baidu.personalcode.crmdatads.common.constants.ResponseConstant
 public abstract class DataSynchronizationBase implements DataSynchronizationPostProcess {
 
     @Autowired
-    private TaskLockService taskLockService;
+    private RedissonUtil redissonUtil;
 
     @Autowired
     private DataSynchronizationQueueMapper dataSynchronizationQueueMapper;
@@ -55,23 +54,24 @@ public abstract class DataSynchronizationBase implements DataSynchronizationPost
             dataSynchronizationBeforePostProcess(dataSynchronizationPoBase);
 
             log.info("doDataSynchronization begin time is {}",
-                    DateCstUtils.utcToCSTStr(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                    DateUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 
             for (String tableName : dataSynchronizationPoBase.getTableList()){
-                try (TaskLocker taskLocker = new TaskLocker(taskLockService, tableName,
-                        30 * 1000 * 6, 1)) {
-                    if (taskLocker.isLocked()){
+                try {
+                    // todo 这里不建议使用redis，增加了复杂度，还要考虑单点故障，看门狗，死锁等等的问题。
+                    redissonUtil.lock(tableName);
 
-                        doDataSynchronizationPre(tableName, dataSynchronizationPoBase);
+                    doDataSynchronizationPre(tableName, dataSynchronizationPoBase);
 
-                        if (DataEmptyUtil.isEmpty(dataSynchronizationPoBase.getTotal())){
-                            continue;
-                        }
-
-                        doDataSynchronization(dataSynchronizationPoBase);
-                    } else {
-                        log.error("tableName :{}, is locked", tableName);
+                    if (DataEmptyUtil.isEmpty(dataSynchronizationPoBase.getTotal())){
+                        continue;
                     }
+
+                    doDataSynchronization(dataSynchronizationPoBase);
+                } catch (Exception e){
+                    log.error("sync table error, tableName:{}", tableName, e);
+                } finally {
+                    redissonUtil.unlock(tableName);
                 }
             }
 
@@ -79,7 +79,7 @@ public abstract class DataSynchronizationBase implements DataSynchronizationPost
             log.error("dataProcess doDataSynchronization error", e);
         }finally {
             log.info("doDataSynchronization end time is {}",
-                    DateCstUtils.utcToCSTStr(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                    DateUtils.formatDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
 
             dataSynchronizationAfterPostProcess(dataSynchronizationPoBase);
 
@@ -91,21 +91,24 @@ public abstract class DataSynchronizationBase implements DataSynchronizationPost
      */
     protected void dataSynchronizationPreCheck(DataSynchronizationPoBase dataSynchronizationPoBase){
         log.info("syncTableData dataSynchronizationPo :{}", dataSynchronizationPoBase);
-        AbstractJudge.isNull(dataSynchronizationPoBase, RES_MSG_NULL_BASIC);
-        AbstractJudge.isAnyParamEmpty(dataSynchronizationPoBase.getConfigId(), dataSynchronizationPoBase.getTableList());
+        DataSynchronizationJudge.isNull(dataSynchronizationPoBase, RES_MSG_NULL_BASIC);
+        DataSynchronizationJudge.isAnyParamEmpty(dataSynchronizationPoBase.getConfigId(),
+                dataSynchronizationPoBase.getTableList());
     }
 
     /**
      * 前面干点啥
      * @param dataSynchronizationPoBase
      */
-    protected abstract void dataSynchronizationBeforePostProcess(DataSynchronizationPoBase dataSynchronizationPoBase) throws Exception;
+    protected abstract void dataSynchronizationBeforePostProcess(DataSynchronizationPoBase dataSynchronizationPoBase)
+            throws Exception;
 
     /**
      * 可以开始干活了
      * @param dataSynchronizationPoBase
      */
-    protected abstract void doDataSynchronization(DataSynchronizationPoBase dataSynchronizationPoBase) throws Exception;
+    protected abstract void doDataSynchronization(DataSynchronizationPoBase dataSynchronizationPoBase)
+            throws Exception;
 
     /**
      * 干活前在做点事情
@@ -113,7 +116,8 @@ public abstract class DataSynchronizationBase implements DataSynchronizationPost
      * @param dataSynchronizationPoBase
      * @throws Exception
      */
-    protected abstract void doDataSynchronizationPre(String tableName, DataSynchronizationPoBase dataSynchronizationPoBase) throws Exception;
+    protected abstract void doDataSynchronizationPre(
+            String tableName, DataSynchronizationPoBase dataSynchronizationPoBase) throws Exception;
 
     /**
      * 使用队列进行数据的写入，由定时任务进行调度

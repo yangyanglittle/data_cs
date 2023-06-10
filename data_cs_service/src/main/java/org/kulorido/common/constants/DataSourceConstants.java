@@ -1,8 +1,8 @@
-package com.baidu.personalcode.crmdatads.common.constants;
+package org.kulorido.common.constants;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/23 18:19
+ * @Author kulorido
+ * @Date 2099/12/31 18:19
  * @Version 1.0
  */
 public class DataSourceConstants {

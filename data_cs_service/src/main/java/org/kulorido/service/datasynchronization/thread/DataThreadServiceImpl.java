@@ -1,36 +1,36 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.thread;
+package org.kulorido.service.datasynchronization.thread;
 
-import com.baidu.personalcode.crmdatads.builder.BuilderPreparedStatementParam;
-import com.baidu.personalcode.crmdatads.mapper.SynchronizationBaseMapper;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.JdbcThreadPo;
-import com.baidu.personalcode.crmdatads.pojo.datasync.thread.MybatisThreadPo;
-import com.baidu.personalcode.crmdatads.service.retry.ExceptionRetryService;
-import com.baidu.personalcode.crmdatads.util.IdGenerator;
-import com.baidu.personalcode.crmdatads.util.JsonUtil;
-import com.baidu.personalcode.crmdatads.util.StringJoinerUtil;
-import com.baidu.personalcode.crmdatads.util.ThreadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.builder.BuilderPreparedStatementParam;
+import org.kulorido.mapper.SynchronizationBaseMapper;
+import org.kulorido.pojo.datasync.thread.JdbcThreadPo;
+import org.kulorido.pojo.datasync.thread.MybatisThreadPo;
+import org.kulorido.service.datasynchronization.thread.error.CustomJdbcExecutionError;
+import org.kulorido.service.datasynchronization.thread.error.CustomMybatisExecutionError;
+import org.kulorido.service.rejected.CustomRejectedExecutionHandler;
+import org.kulorido.service.retry.ExceptionRetryService;
+import org.kulorido.service.thread.AsynchronousBatchThread;
+import org.kulorido.util.JsonUtil;
+import org.kulorido.util.StringJoinerUtil;
+import org.kulorido.util.ThreadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.baidu.personalcode.crmdatads.builder.DataBaseBuilder.getDataColumn;
-import static com.baidu.personalcode.crmdatads.common.enums.ExceptionRetryStrategyEnum.INSERT_DATA_ERROR;
+import static org.kulorido.builder.DataBaseBuilder.getDataColumn;
+import static org.kulorido.enums.DataRetryEnum.DATA_MYBATIS_RETRY;
+import static org.kulorido.util.ThreadUtil.QUEUE_SIZE;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 18:03
+ * @Author kulorido
+ * @Date 2099/12/31 18:03
  * @Version 1.0
  */
 @Service
@@ -49,6 +49,12 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
     @Autowired
     private CustomJdbcExecutionError customJdbcExecutionError;
 
+    @Autowired
+    private CustomMybatisExecutionError customMybatisExecutionError;
+
+    @Autowired
+    private CustomRejectedExecutionHandler rejectedExecutionHandler;
+
     @Override
     public void asynchronousBatchExecution(JdbcThreadPo jdbcThreadPo) throws SQLException {
 
@@ -60,7 +66,7 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
         placeholderStr.replace(placeholderStr.lastIndexOf(","), placeholderStr.length(), "");
 
         ExecutorService executorService = ThreadUtil.getExecutorService(10, 50,
-                Integer.MAX_VALUE, "batch-insert-into-table");
+                QUEUE_SIZE, "batch-insert-into-table", rejectedExecutionHandler);
 
         List<CompletableFuture<Void>> insertTableFutures = new ArrayList<>();
 
@@ -69,24 +75,9 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
             AtomicInteger atomicInteger = new AtomicInteger(
                     j * jdbcThreadPo.getJdbcDataSynchronizationOperation().getSize());
 
-            insertTableFutures.add(CompletableFuture.runAsync(()->{
-                //读取源库数据
-                String readSql = "SELECT " + jdbcThreadPo.getColumns1() + " FROM " +
-                        jdbcThreadPo.getJdbcDataSynchronizationOperation().getTableName() +
-                        " LIMIT " + atomicInteger.get() + "," +
-                        jdbcThreadPo.getJdbcDataSynchronizationOperation().getSize();
-                try {
-                    builderPreparedStatementParam.setPreparedStatementParam(readSql,
-                            jdbcThreadPo.getColList(),
-                            jdbcThreadPo.getColTypeList(),
-                            jdbcThreadPo.getJdbcDataSynchronizationOperation(),
-                            placeholderStr,
-                            jdbcThreadPo.getColumns1());
-                } catch (SQLException e) {
-                    log.error("setPreparedStatementParam error", e);
-                    customJdbcExecutionError.jdbcCustomerInsertExceptionRetry(e, readSql, jdbcThreadPo);
-                }
-            }, executorService));
+            insertTableFutures.add(CompletableFuture.runAsync(
+                    new AsynchronousBatchThread(jdbcThreadPo, builderPreparedStatementParam, customJdbcExecutionError,
+                            placeholderStr, atomicInteger), executorService));
         }
         insertTableFutures.forEach(item -> CompletableFuture.allOf(item).join());
     }
@@ -98,7 +89,7 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
         for (int j = 0; j < jdbcThreadPo.getNum(); j++) {
             // 这里线程参数测试随便写的
             ExecutorService executorService = ThreadUtil.getExecutorService(5, 100,
-                    Integer.MAX_VALUE, "insert-into-table");
+                    QUEUE_SIZE, "insert-into-table", rejectedExecutionHandler);
 
             //读取源库数据
             String readSql = "SELECT " + jdbcThreadPo.getColumns1() + " FROM " + jdbcThreadPo.getTab() + " LIMIT " +
@@ -126,8 +117,7 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
     @Override
     void mybatisAsynchronousExecutionInvoke(MybatisThreadPo mybatisThreadPo) {
         List<Map<String, Object>> dataResultMaps = mybatisThreadPo.getDataResultMaps();
-        AtomicInteger atomicInteger = mybatisThreadPo.getAtomicInteger();
-        Map<String, Object> dataResultColumnValue = dataResultMaps.get(atomicInteger.get());
+        Map<String, Object> dataResultColumnValue = dataResultMaps.get(mybatisThreadPo.getI());
         StringJoiner columnValueSql = new StringJoiner(",");
         dataResultColumnValue.values().forEach((columnValue) -> {
             if (columnValue instanceof String || columnValue instanceof Date){
@@ -144,7 +134,7 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
             }
         });
 
-        StringJoiner columnSql = getDataColumn(dataResultMaps.get(atomicInteger.get()));
+        StringJoiner columnSql = getDataColumn(dataResultMaps.get(mybatisThreadPo.getI()));
 
         String insertSql = "INSERT INTO "+ mybatisThreadPo.getTableName() + "("+columnSql+")" +
                 "VALUES( " + columnValueSql + " )";
@@ -155,7 +145,7 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
 
         log.info("mybatisAsynchronousExecutionInvoke insert tableName:{},  count :{}",
                 mybatisThreadPo.getTableName(),
-                mybatisThreadPo.getAtomicInteger());
+                mybatisThreadPo.getI());
     }
 
     /**
@@ -167,10 +157,9 @@ public class DataThreadServiceImpl extends DataAbstractThreadService{
     @Override
     void mybatisAsynchronousExecutionError(Exception e, MybatisThreadPo mybatisThreadPo) {
         String errorJsonMsg = JsonUtil.serialize(e);
+        errorJsonMsg = errorJsonMsg.length() > 1000 ? errorJsonMsg.substring(0, 1000) : errorJsonMsg;
         mybatisThreadPo.setDataResultMaps(null);
-        exceptionRetryService.insertExceptionRetry(INSERT_DATA_ERROR,
-                IdGenerator.getUUID(),
-                JsonUtil.serialize(mybatisThreadPo),
-                errorJsonMsg.length() > 5000 ? errorJsonMsg.substring(0, 5000) : errorJsonMsg);
+        exceptionRetryService.insertExceptionRetry(DATA_MYBATIS_RETRY, UUID.randomUUID().toString(),
+                JsonUtil.serialize(mybatisThreadPo), errorJsonMsg);
     }
 }

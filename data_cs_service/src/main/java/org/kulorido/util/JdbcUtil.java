@@ -1,8 +1,8 @@
-package com.baidu.personalcode.crmdatads.util;
+package org.kulorido.util;
 
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.kulorido.model.TableDbInfo;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,9 +16,8 @@ import java.sql.Statement;
  * getConn()	用于注册驱动并获取连接 (无参, 连接默认数据库)
  * getConn()	重载方法...(IP地址, 端口, 数据库名, 用户名, 密码, 字符编码)
  */
+@Slf4j
 public class JdbcUtil {
-    private static final Logger log = LoggerFactory.getLogger(JdbcUtil.class);
-
 
     /**
      * 此方法是用于释放JDBC程序中的资源
@@ -98,7 +97,7 @@ public class JdbcUtil {
         } catch (Exception e) {
             log.error("获取JDBC连接异常",e);
         }
-        return conn;
+        return null;
     }
     /**
      * 注册驱动并获取连接方法重载 (数据库名, 用户名, 密码)
@@ -118,7 +117,7 @@ public class JdbcUtil {
         } catch (Exception e) {
             log.error("获取JDBC连接异常",e);
         }
-        return conn;
+        return null;
     }
     /**
      * 注册驱动并获取连接方法重载 (IP地址, 端口, 数据库名, 用户名, 密码)
@@ -140,7 +139,7 @@ public class JdbcUtil {
         } catch (Exception e) {
             log.error("获取JDBC连接异常",e);
         }
-        return conn;
+        return null;
     }
 
     /**
@@ -164,7 +163,7 @@ public class JdbcUtil {
         } catch (Exception e) {
             log.error("获取JDBC连接异常",e);
         }
-        return conn;
+        return null;
     }
 
     /**
@@ -181,18 +180,23 @@ public class JdbcUtil {
         Connection conn = null;
         try {
             String mysqlDriver = null;
-            if ("5".equals(mysqlType)) mysqlDriver = "com.mysql.jdbc.Driver";
-            if ("8".equals(mysqlType)) mysqlDriver = "com.mysql.cj.jdbc.Driver";
+            if ("5".equals(mysqlType)) {
+                mysqlDriver = "com.mysql.jdbc.Driver";
+            }
+            if ("8".equals(mysqlType)) {
+                mysqlDriver = "com.mysql.cj.jdbc.Driver";
+            }
 
             Class.forName(mysqlDriver);
             conn = DriverManager.getConnection(
-                    "jdbc:mysql://"+host+"/"+db+"?characterEncoding="+ce+"&serverTimezone=Asia/Shanghai&useSSL=false",
+                    "jdbc:mysql://" + host + "/" + db + "?characterEncoding=" + ce +
+                            "&serverTimezone=Asia/Shanghai&useSSL=false",
                     user,pwd);
             return conn;
         } catch (Exception e) {
             log.error("获取JDBC连接异常",e);
         }
-        return conn;
+        return null;
     }
 
     /**
@@ -216,28 +220,23 @@ public class JdbcUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return conn;
+        return null;
     }
 
     /**
      * 注册驱动并获取连接方法 (IP地址:端口, 数据库名, 用户名, 密码, 字符编码)
      * @return conn	返回连接对象
      */
+    @SneakyThrows
     public static Connection getConn2(TableDbInfo tableDbInfo) {
-        Connection conn = null;
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            conn = DriverManager.getConnection(
-                    "jdbc:mysql://" + tableDbInfo.getDbHost() + "/" +
-                            tableDbInfo.getDataBase() + "?characterEncoding=" + tableDbInfo.getCharSet() +
-                            "&serverTimezone=Asia/Shanghai&useSSL=false&zeroDateTimeBehavior=round" +
-                            "&rewriteBatchedStatements=true",
-                    tableDbInfo.getDbUsername(), tableDbInfo.getDbPassword());
-            return conn;
-        } catch (Exception e) {
-            log.error("获取JDBC连接异常",e);
-        }
-        return conn;
+
+        Class.forName("com.mysql.jdbc.Driver");
+        return DriverManager.getConnection(
+                "jdbc:mysql://" + tableDbInfo.getDbHost() + "/" +
+                        tableDbInfo.getDataBase() + "?characterEncoding=" + tableDbInfo.getCharSet() +
+                        "&serverTimezone=Asia/Shanghai&useSSL=false&zeroDateTimeBehavior=round" +
+                        "&rewriteBatchedStatements=true",
+                tableDbInfo.getDbUsername(), tableDbInfo.getDbPassword());
     }
 
 
@@ -253,10 +252,12 @@ public class JdbcUtil {
                             "Shanghai&useSSL=false&rewriteBatchedStatements=true",
                     user,pwd);
 
-            if (conn != null) flag = true;
+            if (conn != null) {
+                flag = true;
+            }
 
         } catch (Exception e) {
-            log.error("数据库连接测试失败:主机[{}]-数据库[{}]-账号[{}]-密码[{}]-字符集[{}]",host,db,user,pwd,ce,e);
+            log.error("数据库连接测试失败:主机[{}]-数据库[{}]-账号[{}]-密码[{}]-字符集[{}]", host, db, user, pwd, ce, e);
         }finally {
             close(null, conn);
         }

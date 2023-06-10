@@ -1,8 +1,8 @@
-package com.baidu.personalcode.crmdatads.common.cache;
+package org.kulorido.common.cache;
 
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
-import com.baidu.personalcode.crmdatads.vo.MenuVo;
 import lombok.Data;
+import org.kulorido.model.TableDbInfo;
+import org.kulorido.vo.TableMenuVo;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,22 +10,22 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/20 15:04
+ * @Author kulorido
+ * @Date 2099/12/31 15:04
  * @Version 1.0
  */
 @Data
 public class TableCacheData {
 
-    private static Map<String, List<MenuVo>> MENU_VO_MAP = new ConcurrentHashMap<>(16);
+    private static Map<String, List<TableMenuVo>> MENU_VO_MAP = new ConcurrentHashMap<>(16);
 
     private static Map<String, List<TableDbInfo>> TABLE_DB_CONFIG_MAP = new HashMap<>(16);
 
-    public static void setMenuvoMap(Map<String, List<MenuVo>> menuVoMap){
+    public static void setMenuvoMap(Map<String, List<TableMenuVo>> menuVoMap){
         MENU_VO_MAP = menuVoMap;
     }
 
-    public static Map<String, List<MenuVo>> getMenuVoMap(){
+    public static Map<String, List<TableMenuVo>> getMenuVoMap(){
         return MENU_VO_MAP;
     }
 

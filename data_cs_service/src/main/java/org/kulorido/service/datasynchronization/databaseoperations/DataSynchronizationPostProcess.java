@@ -1,11 +1,11 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations;
+package org.kulorido.service.datasynchronization.databaseoperations;
 
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.base.DataSynchronization;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.service.datasynchronization.base.DataSynchronization;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 13:07
+ * @Author kulorido
+ * @Date 2099/12/31 13:07
  * @Version 1.0
  */
 public interface DataSynchronizationPostProcess extends DataSynchronization {

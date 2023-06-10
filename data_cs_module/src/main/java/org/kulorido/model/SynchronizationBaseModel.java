@@ -1,10 +1,9 @@
-package com.baidu.personalcode.crmdatads.model;
+package org.kulorido.model;
 
 import lombok.Data;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/26 11:54
+ * @Author kulorido
  * @Version 1.0
  */
 @Data

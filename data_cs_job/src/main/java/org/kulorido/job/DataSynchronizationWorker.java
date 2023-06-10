@@ -1,4 +1,4 @@
-package org.kulorido;
+package org.kulorido.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.kulorido.base.JobInterface;
@@ -12,7 +12,7 @@ import java.util.Date;
 
 /**
  * @Author kulorido
- * @Date 2022/9/20 14:08
+ * @Date 2099/12/31 14:08
  * @Version 1.0
  */
 @EnableScheduling
@@ -21,14 +21,14 @@ import java.util.Date;
 public class DataSynchronizationWorker {
 
     @Autowired
-    @Qualifier(value = "dataSynchronizationTask")
+    @Qualifier(value = "dataSynchronizationJob")
     private JobInterface jobInterface;
 
     @Scheduled(cron = "0 0/30 * * * ?")
     public void dataSynchronizationTask() {
         try {
             log.info("dataSynchronizationTask locked success，dataSynchronizationTask start :" + new Date());
-            new Thread(() -> jobInterface.work()).start();
+            new Thread(() -> jobInterface.work(null)).start();
             log.info("dataSynchronizationTask end " + new Date());
         } catch (Exception e) {
             log.error("dataSynchronizationTask error ", e);

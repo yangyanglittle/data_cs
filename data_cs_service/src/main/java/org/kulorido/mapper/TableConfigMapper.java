@@ -1,33 +1,43 @@
 package org.kulorido.mapper;
 
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
-import org.kulorido.pojo.TableConfig;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+import org.kulorido.model.TableConfig;
 
 import java.util.List;
 
-public interface TableConfigDao {
+public interface TableConfigMapper {
 
-    /** 根据ID删除 */
-    int deleteById(@Param("id") String id);
+    /**
+     * 查看数据库配置
+     * @param configType
+     * @return
+     */
+    @Select("select * from table_config where is_delete = 0 and config_type = #{configType} " +
+            "order by create_time desc")
+    List<TableConfig> queryAllConfig(@Param("configType") String configType);
 
-    /** 根据ID批量删除 */
-    int deleteByIds(@Param("idList") List<String> idList);
+    /**
+     * 查看数据库配置
+     * @param configId
+     * @return
+     */
+    @Select("select * from table_config where is_delete = 0 and id = #{configId}")
+    TableConfig queryConfigById(@Param("configId") String configId);
 
-    /** 插入一条数据 */
-    int insertOne(TableConfig record);
-
-    /** 根据ID更新所有数据 */
-    int updateById(TableConfig record);
-
-    /** 根据主键查询一条数据 */
-    TableConfig queryOneById(@Param("id") String id);
-
-    /** 查询配置列表 */
-    List<TableConfig> getList(TableConfig record);
-
-    /** 查询自己权限下所有配置 */
-    List<TableConfig> queryAllConfig(@Param("userId") String userId, @Param("conType") String conType);
-
-
-    
+    @Insert({
+            "insert into table_config (id, ",
+            "name, remark, update_by, ",
+            "update_time, create_by, ",
+            "create_time, is_delete, ",
+            "config_type)",
+            "values (#{id,jdbcType=VARCHAR}, ",
+            "#{name,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{updateBy,jdbcType=VARCHAR}, ",
+            "#{updateTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, ",
+            "#{createTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=VARCHAR}, ",
+            "#{configType,jdbcType=VARCHAR})"
+    })
+    int insert(TableConfig record);
 }

@@ -1,17 +1,17 @@
 package org.kulorido.mapper;
 
-import com.baidu.personalcode.crmdatads.model.SynchronizationBaseModel;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.kulorido.model.SynchronizationBaseModel;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/23 19:24
+ * @Author kulorido
+ * @Date 2099/12/31 19:24
  * @Version 1.0
  */
 public interface SynchronizationBaseMapper {

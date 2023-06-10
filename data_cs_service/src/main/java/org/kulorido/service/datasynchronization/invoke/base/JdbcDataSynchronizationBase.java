@@ -1,17 +1,16 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.invoke.base;
+package org.kulorido.service.datasynchronization.invoke.base;
 
-import com.baidu.personalcode.crmdatads.pojo.datasync.DataSynchronizationPoBase;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.base.DBSynchronization;
-import com.baidu.personalcode.crmdatads.service.datasynchronization.databaseoperations.JdbcDataSynchronization;
 import lombok.extern.slf4j.Slf4j;
+import org.kulorido.pojo.datasync.DataSynchronizationPoBase;
+import org.kulorido.service.datasynchronization.base.DBSynchronization;
+import org.kulorido.service.datasynchronization.databaseoperations.JdbcDataSynchronization;
 import org.springframework.stereotype.Service;
 
-
-import static com.baidu.personalcode.crmdatads.common.constants.QuantitativeRestrictionsConstants.THREAD_NUM_SYNC_FLAG;
+import static org.kulorido.common.constants.QuantitativeRestrictionsConstants.THREAD_NUM_SYNC_FLAG;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/16 15:05
+ * @Author kulorido
+ * @Date 2099/12/31 15:05
  * @Version 1.0
  */
 @Slf4j

@@ -16,5 +16,26 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <dependencies>
+        <dependency>
+            <groupId>org.kulorido</groupId>
+            <artifactId>data_cs_service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kulorido</groupId>
+            <artifactId>data_cs_client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kulorido</groupId>
+            <artifactId>data_cs_job</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kulorido</groupId>
+            <artifactId>data_cs_test</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

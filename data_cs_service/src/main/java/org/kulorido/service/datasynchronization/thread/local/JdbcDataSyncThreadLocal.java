@@ -1,12 +1,12 @@
-package com.baidu.personalcode.crmdatads.service.datasynchronization.thread.local;
+package org.kulorido.service.datasynchronization.thread.local;
 
-import com.baidu.personalcode.crmdatads.pojo.TableDbInfo;
+import org.kulorido.model.TableDbInfo;
 
 import java.util.List;
 
 /**
- * @Author v_xueweidong
- * @Date 2022/9/19 17:32
+ * @Author kulorido
+ * @Date 2099/12/31 17:32
  * @Version 1.0
  */
 public class JdbcDataSyncThreadLocal {

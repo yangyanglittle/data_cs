@@ -1,5 +1,5 @@
 {
-  "configId": "f1418264-bb7a-49f0-893a-591b56e11501",
+  "configId": "config表id",
   "size": 100,
-  "tableName": "partner_income_amount"
+  "tableName": "tableName"
 }

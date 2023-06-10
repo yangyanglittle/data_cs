@@ -1,7 +1,6 @@
-{"host": "127.0.0.1:3306",
-  "username": "root",
-  "password": "root",
-  "database": "test",
-  "mysqlType": "5",
-  "charSet": "utf8"
+{
+  "configType": "2",
+  "name": "测试使用",
+  "operator": "test",
+  "remark": "测试使用remark"
 }

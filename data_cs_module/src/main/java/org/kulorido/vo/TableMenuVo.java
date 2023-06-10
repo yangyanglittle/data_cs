@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class MenuVo implements Serializable {
+public class TableMenuVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String id;
@@ -16,5 +16,5 @@ public class MenuVo implements Serializable {
     private String menuType;
     private Integer level;
     private Boolean checked;
-    private List<MenuVo> children;
+    private List<TableMenuVo> children;
 }
