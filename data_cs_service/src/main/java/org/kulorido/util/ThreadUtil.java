@@ -1,6 +1,7 @@
 package org.kulorido.util;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.kulorido.exception.DataSynchronizationBaseException;
 import org.kulorido.exception.DataSynchronizationThreadException;
 
 import java.util.concurrent.ExecutorService;
@@ -26,6 +27,14 @@ public class ThreadUtil {
 
     public static final int QUEUE_SIZE   = (1 << COUNT_BITS) / 2;
 
+    /**
+     * @param corePoolSize
+     * @param maxPoolSize
+     * @param queueSize
+     * @param threadNamePrefix
+     * @param rejectedExecutionHandler
+     * @return
+     */
     public static ExecutorService getExecutorService(int corePoolSize,
                                                      int maxPoolSize,
                                                      int queueSize,
@@ -33,6 +42,18 @@ public class ThreadUtil {
                                                      RejectedExecutionHandler rejectedExecutionHandler){
         if (queueSize > CAPACITY){
             throw new DataSynchronizationThreadException(RES_MSG_QUEUE_MAX_RESTRICT);
+        }
+        int core = Runtime.getRuntime().availableProcessors();
+        if (core == 0){
+            throw new DataSynchronizationBaseException.DataSynchronizationCoreException();
+        }
+        // 操作数据库，没必要线程放那么大，核心线程等于计算机的内核数就行
+        if (corePoolSize > core){
+            corePoolSize = core;
+        }
+        // 现在计算机有超线程技术，最大线程数设置为核心线程数的两倍即可，也许可以正负调整下，需要压测
+        if (maxPoolSize > core << 1){
+            maxPoolSize = core << 1;
         }
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(threadNamePrefix + "-%d").build();
         if (null == rejectedExecutionHandler){

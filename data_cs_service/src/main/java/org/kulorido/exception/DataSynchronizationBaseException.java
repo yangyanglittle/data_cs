@@ -1,20 +1,11 @@
 package org.kulorido.exception;
 
-public class DataSynchronizationCoreException extends DataSynchronizationException{
+public class DataSynchronizationBaseException {
 
-    public DataSynchronizationCoreException(String message) {
-        super(message);
-    }
 
-    public DataSynchronizationCoreException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
-
-    public DataSynchronizationCoreException(String format, Object... args) {
-        super(format, args);
-    }
-    
-    public static void DataSynchronizationCoreException extends DataSynchronizationException{
-//        super;
+    public static class DataSynchronizationCoreException extends RuntimeException{
+        public DataSynchronizationCoreException(){
+            super("CPU内核不可为0");
+        }
     }
 }

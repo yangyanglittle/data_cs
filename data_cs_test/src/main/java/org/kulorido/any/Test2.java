@@ -1,2 +1,7 @@
-package org.kulorido.any;public class Test2 {
+package org.kulorido.any;
+
+public class Test2 {
+    public static void main(String[] args) {
+        System.out.println(2 << 1);
+    }
 }
